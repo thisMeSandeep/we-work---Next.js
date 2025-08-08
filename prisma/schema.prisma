@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -10,9 +9,11 @@ datasource db {
 
 model User {
   id            String    @id @default(uuid())
-  fullName      String
+  firstName     String
+  lastName      String
   email         String    @unique
   password      String
+  country       String
   emailVerified Boolean   @default(false)
   role          Role
   profileImage  String?
@@ -37,7 +38,6 @@ model FreelancerProfile {
   user       User    @relation(fields: [userId], references: [id])
   userId     String  @unique
   available  Boolean @default(true)
-  country    String
   mobile     String
   profession String
   bio        String
@@ -63,7 +63,6 @@ model ClientProfile {
   id            String  @id @default(uuid())
   user          User    @relation(fields: [userId], references: [id])
   userId        String  @unique
-  country       String
   mobile        String
   company       String
   websiteLink   String?
