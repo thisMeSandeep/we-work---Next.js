@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  fullName      String
+  email         String    @unique
+  password      String
+  emailVerified Boolean   @default(false)
+  role          Role
+  profileImage  String?
+  emailOTP      String?
+  otpExpiresAt  DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  freelancerProfile FreelancerProfile?
+  clientProfile     ClientProfile?
+  jobs              Job[]              @relation("PostedJobs")
+  proposals         Proposal[]
+}
+
+enum Role {
+  FREELANCER
+  CLIENT
+}
+
+model FreelancerProfile {
+  id         String  @id @default(uuid())
+  user       User    @relation(fields: [userId], references: [id])
+  userId     String  @unique
+  available  Boolean @default(true)
+  country    String
+  mobile     String
+  profession String
+  bio        String
+
+  skills          String[]
+  perHourRate     Float
+  languages       String //comma separated values
+  portfolioLink   String?
+  otherLink       String?
+  experienceLevel ExperienceLevel
+  file            String? // resume or cover letter URL
+  proposals       Proposal[]      @relation("FreelancerProposals")
+  hiredJobs       Job[]           @relation("HiredJobs")
+}
+
+enum ExperienceLevel {
+  EXPERT
+  INTERMEDIATE
+  ENTRY
+}
+
+model ClientProfile {
+  id            String  @id @default(uuid())
+  user          User    @relation(fields: [userId], references: [id])
+  userId        String  @unique
+  country       String
+  mobile        String
+  company       String
+  websiteLink   String?
+  location      String
+  noOfJobPosted Int     @default(0)
+  rating        Float? // future use, static now
+}
+
+enum Category {
+  ACCOUNTING
+  ADMIN_SUPPORT
+  CUSTOMER_SERVICE
+  DATA_SCIENCE
+  DESIGN_CREATIVE
+  ENGINEERING
+  IT_NETWORKING
+  LEGAL
+  SALES_MARKETING
+  TRANSLATION
+  SOFTWARE_DEV
+  WRITING
+}
+
+enum Speciality {
+  ECOMMERCE
+  DESKTOP_SOFTWARE
+  SCRIPTING_AUTOMATION
+  MANUAL_TESTING
+  AUTOMATION_TESTING
+  AI_CHATBOT
+  AI_INTEGRATION
+  PROTOTYPING
+  MOBILE_DESIGN
+  WEB_DESIGN
+  UX_UI
+  MOBILE_APP
+  MOBILE_GAME
+  CRYPTO_TOKENS
+  BLOCKCHAIN_NFT
+  CRYPTO_WALLET
+  SCRUM
+  PRODUCT_MANAGEMENT
+  FIRMWARE
+  EMERGING_TECH
+  AR_VR
+  CODING_TUTORING
+  DATABASE_DEV
+  BACKEND_DEV
+  FRONTEND_DEV
+  FULLSTACK_DEV
+  CMS_DEV
+  GAME_DEV
+}
+
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Job {
+  id            String     @id @default(uuid())
+  title         String
+  description   String
+  category      Category
+  speciality    Speciality
+  skills        String[]
+  budget        Float
+  status        JobStatus  @default(OPEN)
+  noOfProposals Int        @default(0)
+  completed     Boolean    @default(false)
+
+  // Scope
+  scopeSize  ScopeSize
+  duration   ScopeDuration
+  experience ExperienceLevel
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  client   User   @relation("PostedJobs", fields: [clientId], references: [id])
+  clientId String
+
+  hiredFreelancer   FreelancerProfile? @relation("HiredJobs", fields: [hiredFreelancerId], references: [id])
+  hiredFreelancerId String? // null until hired
+
+  proposals Proposal[]
+
+  @@index([clientId])
+  @@index([hiredFreelancerId])
+}
+
+enum ScopeSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum ScopeDuration {
+  ONE_TO_THREE_MONTHS
+  THREE_TO_SIX_MONTHS
+  MORE_THAN_SIX_MONTHS
+}
+
+model Proposal {
+  id          String         @id @default(uuid())
+  coverLetter String
+  message     String? // optional message for future chat use
+  rate        Float
+  status      ProposalStatus @default(PENDING)
+  submittedAt DateTime       @default(now())
+
+  // Relations
+
+  freelancer   User   @relation(fields: [freelancerId], references: [id])
+  freelancerId String
+
+  freelancerProfile   FreelancerProfile? @relation("FreelancerProposals", fields: [freelancerProfileId], references: [id])
+  freelancerProfileId String?
+
+  job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
+
+  @@index([freelancerId])
+  @@index([jobId])
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
