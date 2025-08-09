@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/input-otp";
 import { useState } from "react";
 import { z } from "zod";
+import { verifyOtpAndLoginAction } from "@/actions/auth.actions";
 
 // Schema with regex email validation
 const otpSchema = z.object({
@@ -39,9 +40,16 @@ const VerifyEmail = () => {
 
   const [otpValue, setOtpValue] = useState("");
 
-  const onSubmit = (data: OtpType) => {
+  const onSubmit =async (data: OtpType) => {
     console.log("Verification data:", data);
     // handle verification logic here
+    const response=await verifyOtpAndLoginAction(data);
+    if(response.success){
+      alert(response.message);
+    }
+    else{
+      alert(response.message);
+    }
   };
 
   return (

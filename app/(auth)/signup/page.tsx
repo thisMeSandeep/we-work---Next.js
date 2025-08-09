@@ -19,13 +19,16 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { registerUserAction } from "@/actions/auth.actions";
+import Popup from "@/components/popup/Popup";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [countriesToShow, setCountriesToShow] = useState([...countries]);
   const [checked, setChecked] = useState(false); // frontend only
-  const [role, setRole] = useState<"FREELANCER" | "CLIENT" | "">("");
-
+  const [role, setRole] = useState<"FREELANCER" | "CLIENT">("FREELANCER");
+  const [otpLink, setOtpLink] = useState("");
+  const [isOpen , setIsOpen]=useState(false)
   const {
     register,
     handleSubmit,
@@ -40,7 +43,7 @@ const Signup = () => {
       email: "",
       password: "",
       country: "",
-      role: "",
+      role: role,
     },
   });
 
@@ -58,7 +61,7 @@ const Signup = () => {
   };
 
   // handle submit
-  const onSubmit = (data: RegistrationType) => {
+  const onSubmit = async (data: RegistrationType) => {
     if (!checked) {
       alert("Please agree to the terms before proceeding.");
       return;
@@ -69,11 +72,48 @@ const Signup = () => {
     }
     data.role = role; // set selected role
     console.log(data);
-    router.push("/email-verification");
+    const response = await registerUserAction(data);
+
+    if (response.success && response.otpLink) {
+      alert(response.message);
+      setOtpLink(response.otpLink);
+      setIsOpen(true)
+    } else {
+      alert(response.message);
+    }
   };
 
   return (
     <div className="py-10 px-4">
+      {/* show OTP link here */}
+      {otpLink && (
+        <Popup
+          isOpen={isOpen}
+          onClose={() => setOtpLink("")}
+          title="Get Your OTP"
+        >
+          <p className="text-green-800 mb-4">
+            Click on this link to get OTP -{" "}
+            <Link
+              href={otpLink}
+              target="_blank"
+              className="underline font-semibold hover:text-green-900"
+            >
+              Get OTP
+            </Link>
+          </p>
+          <Button
+            onClick={() => {
+              setOtpLink("");
+              router.push("/email-verification");
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Verify Email
+          </Button>
+        </Popup>
+      )}
+
       <div className="w-full md:max-w-2xl mx-auto">
         <h3 className="text-3xl md:text-4xl font-medium text-center">
           Sign up to find work you love

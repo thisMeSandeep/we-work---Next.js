@@ -1,36 +1,44 @@
-import { MailtrapClient } from "mailtrap";
+import nodemailer from "nodemailer";
+import { success } from "zod";
 
-const TOKEN = process.env.MAIL_TRAP || "";
-
-const client = new MailtrapClient({
-  token: TOKEN,
+// Create transporter using Ethereal
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "bridie.oreilly48@ethereal.email",
+    pass: "w4ztTrTEAxdG9mpnRV",
+  },
 });
 
-const sender = {
-  email: "snayal50@gmail.com", 
-  name: "WeWork",
+type EmailProps = {
+  to: string;
+  subject: string;
+  html: string;
 };
 
-
-export async function sendOtpEmail(receiverEmail: string, otpCode: string) {
-  const recipients = [{ email: receiverEmail }];
-
+const sendEmail = async ({ to, subject, html }: EmailProps) => {
   try {
-    const response = await client.send({
-      from: sender,
-      to: recipients,
-      template_uuid: "6d3630d8-5c18-45cf-9670-7a4e1b899a31", 
-      template_variables: {
-        OTP_CODE: otpCode,
-      },
+    const info = await transporter.sendMail({
+      from: `"WeWork" <no-reply@wework.com>`,
+      to,
+      subject,
+      html,
     });
-
-    return { success: true, data: response };
-  } catch (error) {
-    console.error("Failed to send OTP email via Mailtrap:", error);
     return {
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
+        success:true,
+        viewLink:nodemailer.getTestMessageUrl(info),
+    }
+  } catch (err) {
+    console.error(
+      "Email sending failed:",
+      err instanceof Error ? err.message : err
+    );
+    return {
+        success:false
+    }
   }
-}
+};
+
+export default sendEmail;

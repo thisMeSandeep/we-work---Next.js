@@ -1,8 +1,9 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { sendOtpEmail } from "@/lib/email";
+import sendEmail from "@/lib/email";
 import generateJwtToken from "@/lib/generateJwtToken";
+import { otpEmailTemplate } from "@/lib/otpEmailTemplate";
 import {
   loginSchema,
   LoginType,
@@ -55,15 +56,23 @@ export const registerUserAction = async (data: RegistrationType) => {
     });
 
     // send otp to email
-    const sendResult = await sendOtpEmail(user.email, otp.toString());
-    if (!sendResult.success) {
-      console.warn("OTP email failed:", sendResult.error);
+    const res = await sendEmail({
+      to: user.email,
+      subject: "Verify your email",
+      html: otpEmailTemplate(otp.toString()),
+    });
+
+    if (!res.success) {
+      return {
+        success: false,
+        error: "Failed to send email",
+      };
     }
 
     return {
       success: true,
-      message:
-        "Registration successfull , please check your email for verification",
+      message: "Registration successfull , please verify your email",
+      otpLink: res.viewLink,
     };
   } catch (err) {
     console.error("Error registering user:", err);
@@ -75,7 +84,12 @@ export const registerUserAction = async (data: RegistrationType) => {
 };
 
 // verify otp and email and login user
-export const verifyOtpAndLoginAction = async (email: string, otp: string) => {
+type OtpType = {
+  email: string;
+  otp: string;
+};
+
+export const verifyOtpAndLoginAction = async ({ email, otp }: OtpType) => {
   if (!email || !otp) {
     return {
       success: false,
@@ -119,7 +133,11 @@ export const verifyOtpAndLoginAction = async (email: string, otp: string) => {
     });
 
     // generate jwt token
-    const token = generateJwtToken({ id: user.id, email: user.email });
+    const token = generateJwtToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     if (!token) {
       return {
@@ -196,7 +214,11 @@ export const loginUserAction = async (data: LoginType) => {
     }
 
     // generate token
-    const token = generateJwtToken({ id: user.id, email: user.email });
+    const token = generateJwtToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
     if (!token) {
       return {
         success: false,
@@ -228,13 +250,12 @@ export const loginUserAction = async (data: LoginType) => {
   }
 };
 
-
 //logout user
-export const logoutUserAction=async()=>{
-  const cookieStore=await cookies();
+export const logoutUserAction = async () => {
+  const cookieStore = await cookies();
   cookieStore.delete("auth_token");
-  return{
-    success:true,
-    message:"Logout successful"
-  }
-}
+  return {
+    success: true,
+    message: "Logout successful",
+  };
+};

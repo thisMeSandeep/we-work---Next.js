@@ -7,7 +7,7 @@ export const registrationSchema = z.object({
     email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
     country: z.string().min(1, { message: "Country is required" }),
-    role: z.enum(["FREELANCER", "CLIENT" ,""], { message: "Invalid role" }),
+    role: z.enum(["FREELANCER", "CLIENT"], { message: "Invalid role" }),
 })
 
 export type RegistrationType = z.infer<typeof registrationSchema>
