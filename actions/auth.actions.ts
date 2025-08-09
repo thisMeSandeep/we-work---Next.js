@@ -10,10 +10,10 @@ import {
   type RegistrationType,
 } from "@/lib/validation";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 
 // register user
-
-export const registerUser = async (data: RegistrationType) => {
+export const registerUserAction = async (data: RegistrationType) => {
   // validate data
   const result = registrationSchema.safeParse(data);
   if (!result.success) {
@@ -75,7 +75,7 @@ export const registerUser = async (data: RegistrationType) => {
 };
 
 // verify otp and email and login user
-export const verifyOtpAndLogin = async (email: string, otp: string) => {
+export const verifyOtpAndLoginAction = async (email: string, otp: string) => {
   if (!email || !otp) {
     return {
       success: false,
@@ -128,11 +128,19 @@ export const verifyOtpAndLogin = async (email: string, otp: string) => {
       };
     }
 
+    // Set cookie
+    const cookieStore = await cookies();
+    cookieStore.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
     // return user
     return {
       success: true,
       message: "Email verified successfully",
-      token,
       user,
     };
   } catch (err) {
@@ -145,7 +153,7 @@ export const verifyOtpAndLogin = async (email: string, otp: string) => {
 };
 
 // login user
-export const loginUser = async (data: LoginType) => {
+export const loginUserAction = async (data: LoginType) => {
   // validate data
   const result = loginSchema.safeParse(data);
   if (!result.success) {
@@ -189,12 +197,26 @@ export const loginUser = async (data: LoginType) => {
 
     // generate token
     const token = generateJwtToken({ id: user.id, email: user.email });
+    if (!token) {
+      return {
+        success: false,
+        error: "Failed to generate token",
+      };
+    }
+
+    // Set cookie
+    const cookieStore = await cookies();
+    cookieStore.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
 
     // return data
     return {
       success: true,
       message: "Login successful",
-      token,
       user,
     };
   } catch (err) {
@@ -205,3 +227,14 @@ export const loginUser = async (data: LoginType) => {
     };
   }
 };
+
+
+//logout user
+export const logoutUserAction=async()=>{
+  const cookieStore=await cookies();
+  cookieStore.delete("auth_token");
+  return{
+    success:true,
+    message:"Logout successful"
+  }
+}
