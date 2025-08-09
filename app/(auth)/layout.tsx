@@ -5,7 +5,7 @@ const AuthLayout = ({children}:{children:React.ReactNode}) => {
   return (
     <div>
       <Authheader />
-      <main className='mt-20'>{children}</main>
+      <main className='mt-10 md:mt-20'>{children}</main>
     </div>
   );
 }
