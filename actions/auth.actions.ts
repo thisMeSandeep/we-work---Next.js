@@ -133,7 +133,7 @@ export const verifyOtpAndLoginAction = async ({ email, otp }: OtpType) => {
 
     // generate jwt token
     const token = generateJwtToken({
-      id: user.id,
+      userId: user.id,
       email: user.email,
       role: user.role,
     });
@@ -211,7 +211,7 @@ export const loginUserAction = async (data: LoginType) => {
 
     // generate token
     const token = generateJwtToken({
-      id: user.id,
+      userId: user.id,
       email: user.email,
       role: user.role,
     });

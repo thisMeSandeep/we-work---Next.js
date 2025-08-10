@@ -7,68 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String    @id @default(uuid())
-  firstName     String
-  lastName      String
-  email         String    @unique
-  password      String
-  country       String
-  emailVerified Boolean   @default(false)
-  role          Role
-  profileImage  String?
-  emailOTP      String?
-  otpExpiresAt  DateTime?
-  createdAt     DateTime  @default(now())
-
-  // Relations
-  freelancerProfile FreelancerProfile?
-  clientProfile     ClientProfile?
-  jobs              Job[]              @relation("PostedJobs")
-  proposals         Proposal[]
-}
-
+//
+// ENUMS
+//
 enum Role {
   FREELANCER
   CLIENT
-}
-
-model FreelancerProfile {
-  id         String  @id @default(uuid())
-  user       User    @relation(fields: [userId], references: [id])
-  userId     String  @unique
-  available  Boolean @default(true)
-  mobile     String
-  profession String
-  bio        String
-
-  skills          String[]
-  perHourRate     Float
-  languages       String //comma separated values
-  portfolioLink   String?
-  otherLink       String?
-  experienceLevel ExperienceLevel
-  file            String? // resume or cover letter URL
-  proposals       Proposal[]      @relation("FreelancerProposals")
-  hiredJobs       Job[]           @relation("HiredJobs")
 }
 
 enum ExperienceLevel {
   EXPERT
   INTERMEDIATE
   ENTRY
-}
-
-model ClientProfile {
-  id            String  @id @default(uuid())
-  user          User    @relation(fields: [userId], references: [id])
-  userId        String  @unique
-  mobile        String
-  company       String
-  websiteLink   String?
-  location      String
-  noOfJobPosted Int     @default(0)
-  rating        Float? // future use, static now
 }
 
 enum Category {
@@ -124,38 +74,6 @@ enum JobStatus {
   CANCELLED
 }
 
-model Job {
-  id            String     @id @default(uuid())
-  title         String
-  description   String
-  category      Category
-  speciality    Speciality
-  skills        String[]
-  budget        Float
-  status        JobStatus  @default(OPEN)
-  noOfProposals Int        @default(0)
-  completed     Boolean    @default(false)
-
-  // Scope
-  scopeSize  ScopeSize
-  duration   ScopeDuration
-  experience ExperienceLevel
-
-  createdAt DateTime @default(now())
-
-  // Relations
-  client   User   @relation("PostedJobs", fields: [clientId], references: [id])
-  clientId String
-
-  hiredFreelancer   FreelancerProfile? @relation("HiredJobs", fields: [hiredFreelancerId], references: [id])
-  hiredFreelancerId String? // null until hired
-
-  proposals Proposal[]
-
-  @@index([clientId])
-  @@index([hiredFreelancerId])
-}
-
 enum ScopeSize {
   SMALL
   MEDIUM
@@ -168,32 +86,112 @@ enum ScopeDuration {
   MORE_THAN_SIX_MONTHS
 }
 
-model Proposal {
-  id          String         @id @default(uuid())
-  coverLetter String
-  message     String? // optional message for future chat use
-  rate        Float
-  status      ProposalStatus @default(PENDING)
-  submittedAt DateTime       @default(now())
-
-  // Relations
-
-  freelancer   User   @relation(fields: [freelancerId], references: [id])
-  freelancerId String
-
-  freelancerProfile   FreelancerProfile? @relation("FreelancerProposals", fields: [freelancerProfileId], references: [id])
-  freelancerProfileId String?
-
-  job   Job    @relation(fields: [jobId], references: [id])
-  jobId String
-
-  @@index([freelancerId])
-  @@index([jobId])
-}
-
 enum ProposalStatus {
   PENDING
   ACCEPTED
   REJECTED
   WITHDRAWN
+}
+
+//
+// MODELS
+//
+model User {
+  id            String    @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  password      String
+  country       String
+  emailVerified Boolean   @default(false)
+  role          Role
+  profileImage  String?
+  emailOTP      String?
+  otpExpiresAt  DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  freelancerProfile FreelancerProfile?
+  clientProfile     ClientProfile?
+}
+
+model FreelancerProfile {
+  id         String  @id @default(uuid())
+  user       User    @relation(fields: [userId], references: [id])
+  userId     String  @unique
+  available  Boolean @default(true)
+  mobile     String
+  profession String
+  bio        String
+
+  skills          String[]
+  perHourRate     Float
+  languages       String // comma separated
+  portfolioLink   String?
+  otherLink       String?
+  experienceLevel ExperienceLevel
+  file            String? // resume or cover letter URL
+
+  // Relations
+  savedJobs Job[]      @relation("SavedJobs")
+  proposals Proposal[]
+  hiredJobs Job[]      @relation("HiredJobs")
+}
+
+model ClientProfile {
+  id          String  @id @default(uuid())
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String  @unique
+  mobile      String
+  company     String
+  websiteLink String?
+  location    String
+  rating      Float? // future use
+
+  // Relations
+  postedJobs Job[]
+}
+
+model Job {
+  id                String     @id @default(uuid())
+  title             String
+  description       String
+  category          Category
+  speciality        Speciality
+  skills            String[]
+  budget            Float
+  status            JobStatus  @default(OPEN)
+  numberOfProposals Int        @default(0)
+  completed         Boolean    @default(false)
+
+  scopeSize  ScopeSize
+  duration   ScopeDuration
+  experience ExperienceLevel
+  createdAt  DateTime        @default(now())
+
+  // Relations
+  client   ClientProfile @relation(fields: [clientId], references: [id])
+  clientId String
+
+  hiredFreelancer   FreelancerProfile? @relation("HiredJobs", fields: [hiredFreelancerId], references: [id])
+  hiredFreelancerId String?
+
+  proposals Proposal[]
+  savedBy   FreelancerProfile[] @relation("SavedJobs")
+}
+
+model Proposal {
+  id          String         @id @default(uuid())
+  coverLetter String
+  message     String?
+  rate        Float
+  status      ProposalStatus @default(PENDING)
+  submittedAt DateTime       @default(now())
+
+  // Relations
+  freelancerProfile   FreelancerProfile @relation(fields: [freelancerProfileId], references: [id])
+  freelancerProfileId String
+
+  job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
 }

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-type PayloadProps = {
-  id: string;
+export type PayloadProps = {
+  userId: string;
   email: string;
   role:string
 };
