@@ -9,9 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import SubmitButton from "@/components/button/SubmitButton";
+import { loginUserAction } from "@/actions/auth.actions";
+import { toast } from "sonner";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading , setIsLoading]=useState(false)
+
 
   const {
     register,
@@ -26,9 +31,21 @@ const Login = () => {
   });
 
   // handle submit
-  const onSubmit = (data: LoginType) => {
+  const onSubmit = async (data: LoginType) => {
     console.log("Login data:", data);
-    // handle login logic here
+    try{
+      setIsLoading(true);
+      const response=await loginUserAction(data);
+      if(response.success){
+        toast.success(response.message)
+      }else{
+        toast.error(response.message)
+      }
+    }catch(err){
+         toast.error("Something went wrong")
+    }finally{
+      setIsLoading(false)
+    }
   };
 
   return (
@@ -40,7 +57,7 @@ const Login = () => {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-10 space-y-6 bg-white p-6 rounded-lg shadow-sm"
+          className="mt-10 space-y-6 bg-white p-6 rounded-lg"
         >
           {/* email input */}
           <div>
@@ -51,11 +68,10 @@ const Login = () => {
               type="email"
               {...register("email")}
               id="email"
-              className="border md:py-5 border-black/80 w-full 
-                         focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+              className="border md:py-5 border-black/80 w-full  focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
             />
             {errors.email && (
-              <p className="text-red-600 text-sm mt-1">Email is required</p>
+              <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
             )}
           </div>
 
@@ -70,12 +86,11 @@ const Login = () => {
                 {...register("password")}
                 id="password"
                 placeholder="Enter your password"
-                className="pr-10 w-full border border-black/80 md:py-5 
-                           focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                className="pr-10 w-full border border-black/80 md:py-5  focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
               />
               {errors.password && (
                 <p className="text-red-600 text-sm mt-1">
-                  Password is required
+                  {errors.password.message}
                 </p>
               )}
               <span
@@ -94,12 +109,7 @@ const Login = () => {
 
           {/* submit button */}
           <div className="w-full flex justify-center">
-            <Button
-              type="submit"
-              className="w-full sm:w-auto px-8 py-4 bg-green-700 hover:bg-green-500 cursor-pointer"
-            >
-              Log in
-            </Button>
+           <SubmitButton isLoading={isLoading} disabled={isLoading}>Log In</SubmitButton>
           </div>
 
           {/* link to signup */}
@@ -110,6 +120,7 @@ const Login = () => {
             </Link>
           </p>
         </form>
+
       </div>
     </div>
   );

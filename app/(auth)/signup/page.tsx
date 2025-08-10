@@ -21,6 +21,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerUserAction } from "@/actions/auth.actions";
 import Popup from "@/components/popup/Popup";
+import { toast } from "sonner";
+import SubmitButton from "@/components/button/SubmitButton";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +30,8 @@ const Signup = () => {
   const [checked, setChecked] = useState(false); // frontend only
   const [role, setRole] = useState<"FREELANCER" | "CLIENT">("FREELANCER");
   const [otpLink, setOtpLink] = useState("");
-  const [isOpen , setIsOpen]=useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -61,25 +64,33 @@ const Signup = () => {
   };
 
   // handle submit
-  const onSubmit = async (data: RegistrationType) => {
+  const onSubmit = async (formData: RegistrationType) => {
     if (!checked) {
-      alert("Please agree to the terms before proceeding.");
+      toast.error("Please accept the terms and conditions.");
       return;
     }
-    if (!role) {
-      alert("Please select a role before proceeding.");
-      return;
-    }
-    data.role = role; // set selected role
-    console.log(data);
-    const response = await registerUserAction(data);
 
-    if (response.success && response.otpLink) {
-      alert(response.message);
-      setOtpLink(response.otpLink);
-      setIsOpen(true)
-    } else {
-      alert(response.message);
+    try {
+      setIsLoading(true);
+
+      const payload = { ...formData, role };
+      console.log(payload);
+
+      const response = await registerUserAction(payload);
+
+      if (response.success && response.otpLink) {
+        toast.success(response.message);
+        setOtpLink(response.otpLink);
+        setIsOpen(true);
+      } else {
+        toast.error(response.message || "Something went wrong");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,7 +100,6 @@ const Signup = () => {
       {otpLink && (
         <Popup
           isOpen={isOpen}
-          onClose={() => setOtpLink("")}
           title="Get Your OTP"
         >
           <p className="text-green-800 mb-4">
@@ -121,9 +131,10 @@ const Signup = () => {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-10 space-y-6 bg-white p-6 rounded-lg shadow-sm"
+          className="mt-10 space-y-6 bg-white p-6 rounded-lg"
         >
           {/* role selection */}
+          <Label className="mb-2 block">Select a role</Label>
           <div className="flex gap-4">
             <div
               onClick={() => setRole("FREELANCER")}
@@ -160,11 +171,11 @@ const Signup = () => {
                 type="text"
                 {...register("firstName")}
                 id="firstName"
-                className="md:py-5 border border-black/80 text-sm w-full  focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                className="md:py-5 bg-transparent border border-black/80 text-sm w-full  focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0   focus:outline-none"
               />
               {errors.firstName && (
                 <p className="text-red-600 text-sm mt-1">
-                  First name is required
+                  {errors.firstName.message || "First name is required"}
                 </p>
               )}
             </div>
@@ -179,11 +190,11 @@ const Signup = () => {
                 {...register("lastName")}
                 id="lastName"
                 className="border md:py-5 border-black/80 w-full 
-                           focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                           focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
               />
               {errors.lastName && (
                 <p className="text-red-600 text-sm mt-1">
-                  Last name is required
+                  {errors.lastName.message || "Last name is required"}
                 </p>
               )}
             </div>
@@ -199,10 +210,12 @@ const Signup = () => {
               {...register("email")}
               id="email"
               className="border md:py-5 border-black/80 w-full 
-                         focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                         focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
             />
             {errors.email && (
-              <p className="text-red-600 text-sm mt-1">Email is required</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -218,11 +231,11 @@ const Signup = () => {
                 id="password"
                 placeholder="Password (8 or more characters)"
                 className="pr-10 w-full border border-black/80 md:py-5 
-                           focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                           focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
               />
               {errors.password && (
                 <p className="text-red-600 text-sm mt-1">
-                  Password is required
+                  {errors.password.message || "Password is required"}
                 </p>
               )}
               <span
@@ -246,10 +259,7 @@ const Signup = () => {
               onValueChange={(value) => setValue("country", value)}
               value={selectedCountry}
             >
-              <SelectTrigger
-                className="w-full border border-black/80 py-5 
-                                         focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
-              >
+              <SelectTrigger className="w-full border border-black/80 py-5 focus:border-2 focus-visible::border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
 
@@ -261,8 +271,9 @@ const Signup = () => {
                       type="text"
                       placeholder="Search..."
                       onChange={(e) => handleSearch(e.target.value)}
-                      className="pr-10 border border-black/80 
-                                 focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      className="pr-10 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
                     />
                     <Search className="absolute right-2 top-2" size={18} />
                   </div>
@@ -276,7 +287,9 @@ const Signup = () => {
               </SelectContent>
             </Select>
             {errors.country && (
-              <p className="text-red-600 text-sm mt-1">Country is required</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.country.message || "Country is required"}
+              </p>
             )}
           </div>
 
@@ -286,7 +299,7 @@ const Signup = () => {
               checked={checked}
               onCheckedChange={(val) => setChecked(!!val)}
               className="size-5 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 
-                         border border-black/80 focus:ring-2 focus:ring-black focus-visible:ring-black"
+                         border border-black/80 focus:border-2 focus-visible:border-green-500  focus:ring-0 focus-visible:ring-0 focus:outline-none"
             />
             <p className="text-sm">
               Yes, I understand and agree to the{" "}
@@ -303,12 +316,9 @@ const Signup = () => {
 
           {/* submit button */}
           <div className="w-full flex justify-center">
-            <Button
-              type="submit"
-              className="w-full sm:w-auto px-8 py-4 bg-green-700 hover:bg-green-500 cursor-pointer"
-            >
-              Create my account
-            </Button>
+            <SubmitButton isLoading={isLoading} disabled={isLoading}>
+              Register your account
+            </SubmitButton>
           </div>
 
           {/* link to login */}

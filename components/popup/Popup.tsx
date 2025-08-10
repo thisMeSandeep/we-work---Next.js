@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 
 type PopupProps = {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   children: ReactNode;
   title?: string;
 };

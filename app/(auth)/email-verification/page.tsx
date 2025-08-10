@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import {
   InputOTP,
   InputOTPGroup,
@@ -13,6 +13,8 @@ import {
 import { useState } from "react";
 import { z } from "zod";
 import { verifyOtpAndLoginAction } from "@/actions/auth.actions";
+import { toast } from "sonner";
+import SubmitButton from "@/components/button/SubmitButton";
 
 // Schema with regex email validation
 const otpSchema = z.object({
@@ -25,6 +27,8 @@ const otpSchema = z.object({
 type OtpType = z.infer<typeof otpSchema>;
 
 const VerifyEmail = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -40,15 +44,21 @@ const VerifyEmail = () => {
 
   const [otpValue, setOtpValue] = useState("");
 
-  const onSubmit =async (data: OtpType) => {
-    console.log("Verification data:", data);
-    // handle verification logic here
-    const response=await verifyOtpAndLoginAction(data);
-    if(response.success){
-      alert(response.message);
-    }
-    else{
-      alert(response.message);
+  const onSubmit = async (data: OtpType) => {
+    try {
+      setIsLoading(true);
+      console.log("Verification data:", data);
+      // handle verification logic here
+      const response = await verifyOtpAndLoginAction(data);
+      if (response.success) {
+        toast.success(response.message);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (err) {
+      console.error("Error during verification:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,7 +71,7 @@ const VerifyEmail = () => {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-10 space-y-6 bg-white p-6 rounded-lg shadow-sm"
+          className="mt-10 space-y-6 bg-white p-6 rounded-lg "
         >
           {/* email input */}
           <div>
@@ -72,8 +82,7 @@ const VerifyEmail = () => {
               type="email"
               {...register("email")}
               id="email"
-              className="border md:py-5 border-black/80 w-full 
-                         focus:border-2 focus:border-black focus:ring-0 focus-visible:ring-0 focus:outline-none"
+              className="border md:py-5 border-black/80 w-full  focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
             />
             {errors.email && (
               <p className="text-red-600 text-sm mt-1">
@@ -96,12 +105,30 @@ const VerifyEmail = () => {
                 className="w-full gap-2"
               >
                 <InputOTPGroup className="w-full gap-2">
-                  <InputOTPSlot index={0} className="flex-1 border border-black/80" />
-                  <InputOTPSlot index={1} className="flex-1 border border-black/80" />
-                  <InputOTPSlot index={2} className="flex-1 border border-black/80" />
-                  <InputOTPSlot index={3} className="flex-1 border border-black/80" />
-                  <InputOTPSlot index={4} className="flex-1 border border-black/80" />
-                  <InputOTPSlot index={5} className="flex-1 border border-black/80" />
+                  <InputOTPSlot
+                    index={0}
+                    className="flex-1 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                  />
+                  <InputOTPSlot
+                    index={1}
+                    className="flex-1 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                  />
+                  <InputOTPSlot
+                    index={2}
+                    className="flex-1 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                  />
+                  <InputOTPSlot
+                    index={3}
+                    className="flex-1 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                  />
+                  <InputOTPSlot
+                    index={4}
+                    className="flex-1 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                  />
+                  <InputOTPSlot
+                    index={5}
+                    className="flex-1 border border-black/80 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                  />
                 </InputOTPGroup>
               </InputOTP>
             </div>
@@ -112,12 +139,7 @@ const VerifyEmail = () => {
 
           {/* submit button */}
           <div className="w-full flex justify-center">
-            <Button
-              type="submit"
-              className="w-full sm:w-auto px-8 py-4 bg-green-700 hover:bg-green-500 cursor-pointer"
-            >
-              Verify Email
-            </Button>
+            <SubmitButton isLoading={isLoading} disabled={isLoading}>Submit OTP</SubmitButton>
           </div>
         </form>
       </div>

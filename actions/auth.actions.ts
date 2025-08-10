@@ -13,6 +13,7 @@ import {
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
+
 // register user
 export const registerUserAction = async (data: RegistrationType) => {
   // validate data
@@ -20,7 +21,7 @@ export const registerUserAction = async (data: RegistrationType) => {
   if (!result.success) {
     return {
       success: false,
-      error: result.error.issues.map((issue) => issue.message).join(", "),
+      message: result.error.issues.map((issue) => issue.message).join(", "),
     };
   }
 
@@ -33,7 +34,7 @@ export const registerUserAction = async (data: RegistrationType) => {
     if (existingUser) {
       return {
         success: false,
-        error: "User already exists",
+        message: "User already exists",
       };
     }
 
@@ -63,22 +64,19 @@ export const registerUserAction = async (data: RegistrationType) => {
     });
 
     if (!res.success) {
-      return {
-        success: false,
-        error: "Failed to send email",
-      };
+      throw new Error("Failed to send email");
     }
 
     return {
       success: true,
-      message: "Registration successfull , please verify your email",
+      message: "Registration successful , please verify your email",
       otpLink: res.viewLink,
     };
-  } catch (err) {
+  } catch (err:any) {
     console.error("Error registering user:", err);
     return {
       success: false,
-      error: "Failed to create user",
+      message: "Failed to create user",
     };
   }
 };
@@ -101,6 +99,7 @@ export const verifyOtpAndLoginAction = async ({ email, otp }: OtpType) => {
     // get user
     const user = await db.user.findUnique({
       where: { email },
+      omit: { password: true},
     });
 
     if (!user) {
@@ -123,7 +122,7 @@ export const verifyOtpAndLoginAction = async ({ email, otp }: OtpType) => {
     }
 
     // remove emailOTP and otpExpiresAt field
-    await db.user.update({
+      await db.user.update({
       where: { email },
       data: {
         emailVerified: true,
@@ -140,10 +139,7 @@ export const verifyOtpAndLoginAction = async ({ email, otp }: OtpType) => {
     });
 
     if (!token) {
-      return {
-        success: false,
-        message: "Failed to generate token",
-      };
+      throw new Error("Failed to generate token")
     }
 
     // Set cookie
@@ -165,7 +161,7 @@ export const verifyOtpAndLoginAction = async ({ email, otp }: OtpType) => {
     console.error("Error verifying OTP:", err);
     return {
       success: false,
-      message: "Failed to verify OTP",
+      message: "Internal server error",
     };
   }
 };
@@ -190,7 +186,7 @@ export const loginUserAction = async (data: LoginType) => {
     if (!user) {
       return {
         success: false,
-        error: "User not found , please register first",
+        message: "User not found , please register first",
       };
     }
     // check if password is correct
@@ -201,7 +197,7 @@ export const loginUserAction = async (data: LoginType) => {
     if (!isPasswordCorrect) {
       return {
         success: false,
-        error: "Invalid password",
+        message: "Invalid password",
       };
     }
 
@@ -209,7 +205,7 @@ export const loginUserAction = async (data: LoginType) => {
     if (!user.emailVerified) {
       return {
         success: false,
-        error: "Please verify your email first",
+        message: "Please verify your email first",
       };
     }
 
@@ -220,10 +216,7 @@ export const loginUserAction = async (data: LoginType) => {
       role: user.role,
     });
     if (!token) {
-      return {
-        success: false,
-        error: "Failed to generate token",
-      };
+       throw new Error("Failed to generate token")
     }
 
     // Set cookie
@@ -245,7 +238,7 @@ export const loginUserAction = async (data: LoginType) => {
     console.error("Error logging in user:", err);
     return {
       success: false,
-      error: "Failed to login user",
+      message: "Internal server error",
     };
   }
 };
