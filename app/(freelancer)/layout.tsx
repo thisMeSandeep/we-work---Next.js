@@ -1,5 +1,6 @@
 "use client"
 
+import FreelancerHeader from "@/components/header/FreelancerHeader";
 import { fetchAndSetUser } from "@/lib/fetchUser";
 import { useUserStore } from "@/store/useUserStore";
 import { useEffect } from "react";
@@ -13,7 +14,12 @@ const FreelancerLayout = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) return <div>Loading profile...</div>;
 
-  return <div>{children}</div>;
+  return <div>
+    <FreelancerHeader/>
+    <main>
+      {children}
+    </main>
+  </div>;
 };
 
 export default FreelancerLayout;
