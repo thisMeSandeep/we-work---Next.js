@@ -74,7 +74,6 @@ const Signup = () => {
       setIsLoading(true);
 
       const payload = { ...formData, role };
-      console.log(payload);
 
       const response = await registerUserAction(payload);
 

@@ -51,37 +51,6 @@ export const fillFreelancerProfileAction = async (
   }
 };
 
-// get freelancer profile
-export const getFreelancerProfileAction = async () => {
-  try {
-    const { userId } = await auth();
-
-    const freelancer = await db.user.findUnique({
-      where: { id: userId },
-      omit: {
-        password: true,
-        emailOTP: true,
-        otpExpiresAt: true,
-        emailVerified: true,
-      },
-      include: {
-        freelancerProfile: true,
-      },
-    });
-
-    if (!freelancer) {
-      return { success: false, message: "Freelancer profile not found" };
-    }
-
-    return { success: true, user: freelancer };
-  } catch (err) {
-    console.error("Error fetching freelancer profile:", err);
-    return {
-      success: false,
-      message: err instanceof Error ? err.message : "Internal server error",
-    };
-  }
-};
 
 // save a job
 export const saveJobAction = async (jobId: string) => {

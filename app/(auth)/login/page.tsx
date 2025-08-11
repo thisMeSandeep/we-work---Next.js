@@ -12,11 +12,14 @@ import Link from "next/link";
 import SubmitButton from "@/components/button/SubmitButton";
 import { loginUserAction } from "@/actions/auth.actions";
 import { toast } from "sonner";
+import { fetchAndSetUser } from "@/lib/fetchUser";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading , setIsLoading]=useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
+  const router=useRouter();
 
   const {
     register,
@@ -32,19 +35,20 @@ const Login = () => {
 
   // handle submit
   const onSubmit = async (data: LoginType) => {
-    console.log("Login data:", data);
-    try{
+    try {
       setIsLoading(true);
-      const response=await loginUserAction(data);
-      if(response.success){
-        toast.success(response.message)
-      }else{
-        toast.error(response.message)
+      const response = await loginUserAction(data);
+      if (response.success) {
+        toast.success(response.message);
+        await fetchAndSetUser();
+        router.replace("/find-work")
+      } else {
+        toast.error(response.message);
       }
-    }catch(err){
-         toast.error("Something went wrong")
-    }finally{
-      setIsLoading(false)
+    } catch (err) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,7 +75,9 @@ const Login = () => {
               className="border md:py-5 border-black/80 w-full  focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
             />
             {errors.email && (
-              <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -109,7 +115,9 @@ const Login = () => {
 
           {/* submit button */}
           <div className="w-full flex justify-center">
-           <SubmitButton isLoading={isLoading} disabled={isLoading}>Log In</SubmitButton>
+            <SubmitButton isLoading={isLoading} disabled={isLoading}>
+              Log In
+            </SubmitButton>
           </div>
 
           {/* link to signup */}
@@ -120,7 +128,6 @@ const Login = () => {
             </Link>
           </p>
         </form>
-
       </div>
     </div>
   );

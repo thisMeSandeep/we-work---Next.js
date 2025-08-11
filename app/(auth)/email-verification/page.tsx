@@ -15,6 +15,8 @@ import { z } from "zod";
 import { verifyOtpAndLoginAction } from "@/actions/auth.actions";
 import { toast } from "sonner";
 import SubmitButton from "@/components/button/SubmitButton";
+import { fetchAndSetUser } from "@/lib/fetchUser";
+import { useRouter } from "next/navigation";
 
 // Schema with regex email validation
 const otpSchema = z.object({
@@ -28,6 +30,9 @@ type OtpType = z.infer<typeof otpSchema>;
 
 const VerifyEmail = () => {
   const [isLoading, setIsLoading] = useState(false);
+
+
+  const router=useRouter();
 
   const {
     register,
@@ -47,11 +52,13 @@ const VerifyEmail = () => {
   const onSubmit = async (data: OtpType) => {
     try {
       setIsLoading(true);
-      console.log("Verification data:", data);
       // handle verification logic here
       const response = await verifyOtpAndLoginAction(data);
       if (response.success) {
         toast.success(response.message);
+        await fetchAndSetUser();
+        // redirect to profile page
+        router.replace("/freelancer-profile")
       } else {
         toast.error(response.message);
       }
