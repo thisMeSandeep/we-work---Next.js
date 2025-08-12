@@ -9,14 +9,16 @@ import {
   type FreelancerProfileType,
 } from "@/lib/validation";
 
-
+import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 
 // create freelancer profile
 export const fillFreelancerProfileAction = async (
   data: FreelancerProfileType
 ) => {
-  // validate data
-  const result = freelancerProfileSchema.safeParse(data);
+  const { file, ...rest } = data;
+
+  // validate other data
+  const result = freelancerProfileSchema.safeParse({ ...rest });
   if (!result.success) {
     return {
       success: false,
@@ -28,12 +30,22 @@ export const fillFreelancerProfileAction = async (
     // get userId from auth
     const { userId } = await auth();
 
+    let fileUrl: string | undefined;
+
+    if (file instanceof File) {
+      fileUrl = await uploadToCloudinary(file, "freelancer-file");
+    }
+
     // Use upsert to create or update the profile
-    await db.freelancerProfile.upsert({
+    const user=await db.freelancerProfile.upsert({
       where: { userId },
-      update: data,
+      update: {
+        ...rest,
+        file: fileUrl ?? (typeof data.file === "string" ? data.file : null),
+      },
       create: {
-        ...data,
+        ...rest,
+        file: fileUrl ?? (typeof data.file === "string" ? data.file : null),
         userId,
       },
     });
@@ -41,6 +53,7 @@ export const fillFreelancerProfileAction = async (
     return {
       success: true,
       message: "Profile created successfully",
+      user,
     };
   } catch (err) {
     console.log(err);
@@ -50,7 +63,6 @@ export const fillFreelancerProfileAction = async (
     };
   }
 };
-
 
 // save a job
 export const saveJobAction = async (jobId: string) => {

@@ -31,7 +31,13 @@ export type LoginType = z.infer<typeof loginSchema>;
 // freelancer profile schema
 export const ExperienceLevelEnum = z.enum(["ENTRY", "INTERMEDIATE", "EXPERT"]);
 
-//freelancer profile schema
+const optionalUrlOrEmpty = z
+  .string()
+  .url({ message: "Invalid URL" })
+  .or(z.literal(""))
+  .optional()
+  .nullable();
+
 export const freelancerProfileSchema = z.object({
   available: z.boolean().default(true),
 
@@ -52,19 +58,19 @@ export const freelancerProfileSchema = z.object({
 
   perHourRate: z.number().min(1, { message: "Rate must be greater than 0" }),
 
-  languages: z.string().min(1, { message: "Languages are required" }),
+  languages: z.string().min(1, { message: "Languages are required" }), // comma separated string
 
-  portfolioLink: z
-    .string()
-    .url({ message: "Invalid portfolio link" })
-    .optional()
-    .nullable(),
-
-  otherLink: z.string().url({ message: "Invalid link" }).optional().nullable(),
+  portfolioLink: optionalUrlOrEmpty,
+  otherLink: optionalUrlOrEmpty,
+  file: z
+    .union([
+      z.instanceof(File), // Accepts browser File object
+      z.string().url().optional(), // Accepts existing Cloudinary URL
+      z.literal("").optional(), // Accepts empty string
+    ])
+    .optional(),
 
   experienceLevel: ExperienceLevelEnum,
-
-  file: z.string().url({ message: "Invalid file URL" }).optional().nullable(),
 });
 
 export type FreelancerProfileType = z.infer<typeof freelancerProfileSchema>;
@@ -90,5 +96,3 @@ export const proposalSchema = z.object({
 });
 
 export type ProposalType = z.infer<typeof proposalSchema>;
-
-

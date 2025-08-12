@@ -130,7 +130,7 @@ model FreelancerProfile {
   portfolioLink   String?
   otherLink       String?
   experienceLevel ExperienceLevel
-  file            String? // resume or cover letter URL
+  file            String? // resume or cover document
   connects        Int @default(200)
 
   // Relations
