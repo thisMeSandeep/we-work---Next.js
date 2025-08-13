@@ -52,14 +52,14 @@ export const fillFreelancerProfileAction = async (
 
     return {
       success: true,
-      message: "Profile created successfully",
+      message: "Profile saved successfully",
       user,
     };
   } catch (err) {
     console.log(err);
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Authentication failed",
+      message: err instanceof Error ? err.message : "Internal server error",
     };
   }
 };

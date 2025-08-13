@@ -17,6 +17,7 @@ import SubmitButton from "@/components/button/SubmitButton";
 import { fillFreelancerProfileAction } from "@/actions/freelancer.actions";
 import { toast } from "sonner";
 import { fetchAndSetUser } from "@/lib/fetchUser";
+import FilePreview from "@/components/preview/FilePreview";
 
 const experienceLevel = ["ENTRY", "INTERMEDIATE", "EXPERT"] as const;
 
@@ -26,11 +27,11 @@ type FreelancerFormType = {
   profession: string;
   bio: string;
   skills: string[];
-  perHourRate: number ;
+  perHourRate: number;
   languages: string;
   portfolioLink?: string;
   otherLink?: string;
-    experienceLevel: (typeof experienceLevel)[number] | "";
+  experienceLevel: (typeof experienceLevel)[number] | "";
   file?: File | string;
 };
 
@@ -50,14 +51,14 @@ const defaultValues: FreelancerFormType = {
   languages: "",
   portfolioLink: "",
   otherLink: "",
-    experienceLevel: "",
+  experienceLevel: "",
   file: "",
 };
 
 const FreelancerForm = ({ profile }: FreelancerFormProps) => {
   const [editMode, setEditMode] = useState(false);
   const [skill, setSkill] = useState("");
-  const [isLoading , setIsLoading]=useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const formDefaultValues = { ...defaultValues, ...profile };
 
@@ -96,32 +97,31 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
   };
 
   // handle form submit
-  const onSubmit =async (data: FreelancerFormType) => {
-    setIsLoading(true)  
-    try{
-         if (!data.experienceLevel) {
-           toast.error("Experience level is required");
-           return;
-         }
-         const payload = {
-           ...data,
-           experienceLevel: data.experienceLevel as (typeof experienceLevel)[number],
-         } as ActionArg;
-         const response=await fillFreelancerProfileAction(payload);
-         if(response.success){
-          console.log("user data:",response.user);
-          await fetchAndSetUser();
-          toast.success(response.message)
-         }
-         else{
-           toast.error(response.message);
-         }
-    }catch(err){
-         console.log(err);
-          toast.error(err instanceof Error ? err.message : "Something went wrong");
-    }finally{
-           setIsLoading(false)
-           setEditMode(false);
+  const onSubmit = async (data: FreelancerFormType) => {
+    setIsLoading(true);
+    try {
+      if (!data.experienceLevel) {
+        toast.error("Experience level is required");
+        return;
+      }
+      const payload = {
+        ...data,
+        experienceLevel:
+          data.experienceLevel as (typeof experienceLevel)[number],
+      } as ActionArg;
+      const response = await fillFreelancerProfileAction(payload);
+      if (response.success) {
+        await fetchAndSetUser();
+        toast.success(response.message);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsLoading(false);
+      setEditMode(false);
     }
   };
 
@@ -292,10 +292,13 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
                 </button>
               </div>
               {errors.skills && (
-                <p className="text-red-600 mt-1">At least one skill is required</p>
+                <p className="text-red-600 mt-1">
+                  At least one skill is required
+                </p>
               )}
               <div className="flex flex-wrap gap-2 mt-2">
-                {Array.isArray(watchedValues.skills) && watchedValues.skills.length > 0 &&
+                {Array.isArray(watchedValues.skills) &&
+                  watchedValues.skills.length > 0 &&
                   watchedValues.skills.map((item: string) => (
                     <span
                       key={item}
@@ -315,7 +318,8 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
             </>
           ) : (
             <div className="flex flex-wrap gap-2 mt-2">
-              {Array.isArray(watchedValues.skills) && watchedValues.skills.length > 0 &&
+              {Array.isArray(watchedValues.skills) &&
+                watchedValues.skills.length > 0 &&
                 watchedValues.skills.map((skill: string) => (
                   <span
                     key={skill}
@@ -403,7 +407,10 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
                       value={field.value}
                       onValueChange={(val) => field.onChange(val)}
                     >
-                      <SelectTrigger id="experienceLevel" className="mt-2 pr-10 w-full border border-black/80 md:py-5 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none">
+                      <SelectTrigger
+                        id="experienceLevel"
+                        className="mt-2 pr-10 w-full border border-black/80 md:py-5 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
+                      >
                         <SelectValue placeholder="Choose experience level" />
                       </SelectTrigger>
                       <SelectContent>
@@ -515,12 +522,13 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
         {/* File Upload */}
         <div>
           <Label htmlFor="file" className="font-medium text-lg">
-            Resume/CV
+            Resume/CV (PDF only)
           </Label>
           {editMode ? (
             <Input
               type="file"
               id="file"
+               accept="application/pdf"
               onChange={(e) =>
                 setValue("file", e.target.files?.[0] ?? "", {
                   shouldDirty: true,
@@ -529,16 +537,28 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
               className="mt-2 pr-10 w-full border border-black/80 md:py-5 focus:border-2 focus-visible:border-green-500 focus:ring-0 focus-visible:ring-0 focus:outline-none"
             />
           ) : (
-            <p className="mt-1">
-              {typeof watchedValues.file === "string"
-                ? watchedValues.file || "-"
-                : watchedValues.file?.name || "Uploaded file"}
-            </p>
+            <div className="mt-1">
+              {typeof watchedValues.file === "string" ? (
+                watchedValues.file ? (
+                  <FilePreview fileUrl={watchedValues.file} />
+                ) : (
+                  "-"
+                )
+              ) : watchedValues.file instanceof File ? (
+                <p>{watchedValues.file.name}</p>
+              ) : (
+                "Uploaded file"
+              )}
+            </div>
           )}
         </div>
 
         {/* Save button */}
-        {editMode && <SubmitButton isLoading={isLoading} disabled={isLoading}>Save</SubmitButton>}
+        {editMode && (
+          <SubmitButton isLoading={isLoading} disabled={isLoading}>
+            Save
+          </SubmitButton>
+        )}
       </form>
     </div>
   );
