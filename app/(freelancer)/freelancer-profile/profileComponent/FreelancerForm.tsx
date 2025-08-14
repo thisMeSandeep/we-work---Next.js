@@ -128,7 +128,7 @@ const FreelancerForm = ({ profile }: FreelancerFormProps) => {
   const watchedValues = watch();
 
   return (
-    <div className="mx-auto p-6 bg-white rounded shadow">
+    <div className="">
       {/* edit button */}
       <div className="flex items-center justify-between mb-6 border rounded-md px-4 py-2">
         <p className="text-2xl font-medium">Edit Your profile</p>

@@ -16,7 +16,7 @@ const FreelancerLayout = ({ children }: { children: React.ReactNode }) => {
 
   return <div>
     <FreelancerHeader/>
-    <main>
+    <main className="mt-10">
       {children}
     </main>
   </div>;
