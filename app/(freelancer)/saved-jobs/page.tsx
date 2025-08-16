@@ -1,9 +1,11 @@
-
+import JobDescriptionDrawer from "@/components/jobDecription/JobDescriptionDrawer";
 
 const SavedJobs = () => {
   return (
-    <div>SavedJobs</div>
-  )
-}
+    <div>
+      <JobDescriptionDrawer />
+    </div>
+  );
+};
 
-export default SavedJobs
+export default SavedJobs;
