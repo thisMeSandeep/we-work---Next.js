@@ -31,7 +31,7 @@ const Profile = () => {
   const textPlaceholder = (user.firstName[0] + user.lastName[0]).toUpperCase();
 
   return (
-    <div className="px-6 max-w-7xl mx-auto">
+    <div className="px-4 sm:px-6 max-w-7xl mx-auto">
       {/* profile image and name */}
       <div className="mx-auto flex flex-col sm:flex-row items-center justify-between border rounded-md px-4 py-4 sm:py-2 mb-10 gap-4 sm:gap-0">
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
