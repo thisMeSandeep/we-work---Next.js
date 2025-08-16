@@ -14,6 +14,7 @@ type ProfileDropdownProps = {
   name: string;
   role: string;
   avatarText: string;
+  profileImage: string;
   links: DropdownLink[];
 };
 
@@ -21,6 +22,7 @@ export default function ProfileDropdown({
   name,
   role,
   avatarText,
+  profileImage,
   links,
 }: ProfileDropdownProps) {
   const [open, setOpen] = useState(false);
@@ -47,7 +49,14 @@ export default function ProfileDropdown({
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 bg-gray-100 text-sm font-medium hover:border-green-500 transition-colors"
       >
-        {avatarText}
+        {profileImage ? (
+          <img
+            src={profileImage}
+            className="size-full rounded-full object-cover"
+          />
+        ) : (
+          `${avatarText}`
+        )}
       </button>
 
       {/* Dropdown */}
@@ -67,11 +76,12 @@ export default function ProfileDropdown({
           {/* Links */}
           <div className="flex flex-col">
             {links.map((link, idx) => {
-              const Icon = link.icon; // ✅ Create a component variable for Lucide
+              const Icon = link.icon; //Create a component variable for Lucide
               return link.href ? (
                 <Link
                   key={idx}
                   href={link.href}
+                  onClick={()=>setOpen(false)}
                   className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <Icon className="w-4 h-4" /> {link.label}

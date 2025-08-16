@@ -2,6 +2,10 @@ import { Bell, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import ProfileDropdown from "../dropdown/ProfileDropdown";
 import { User, Settings, LogOut } from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
+import { logoutUserAction } from "@/actions/auth.actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   { name: "Find work", path: "/find-work" },
@@ -10,9 +14,23 @@ const navItems = [
 ];
 
 const FreelancerHeader = () => {
+  const user = useUserStore((state) => state.user);
+  const clearUser = useUserStore((state) => state.clearUser);
+
+  const router = useRouter();
+
   //   handle logout
   const handleLogout = async () => {
-    console.log("logout");
+    try {
+      const response = await logoutUserAction();
+      if (response.success) {
+        toast.success(response.message);
+        clearUser();
+        router.replace("/");
+      }
+    } catch (err:any) {
+      toast.error(err.message);
+    }
   };
 
   return (
@@ -56,12 +74,17 @@ const FreelancerHeader = () => {
 
         {/* Profile */}
         <ProfileDropdown
-          name="Sandeep Singh"
-          role="Freelancer"
-          avatarText="SS"
+          name={user.firstName + " " + user.lastName}
+          role={user.role}
+          avatarText={user.firstName[0] + user.lastName[0].toUpperCase()}
+          profileImage={user.profileImage}
           links={[
             { label: "Your Profile", icon: User, href: "/freelancer-profile" },
-            { label: "Account Settings", icon: Settings, href: "/account-settings" },
+            {
+              label: "Account Settings",
+              icon: Settings,
+              href: "/account-settings",
+            },
             { label: "Logout", icon: LogOut, onClick: handleLogout },
           ]}
         />
