@@ -28,8 +28,12 @@ const FreelancerHeader = () => {
         clearUser();
         router.replace("/");
       }
-    } catch (err:any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 

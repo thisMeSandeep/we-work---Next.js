@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Heart, MapPin } from "lucide-react";
+import {  Heart, MapPin } from "lucide-react";
 import { Job } from "@/types/job.types";
 import SkillSlider from "./SkillsSlider";
 

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type DropdownLink = {
   label: string;
@@ -50,9 +51,11 @@ export default function ProfileDropdown({
         className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 bg-gray-100 text-sm font-medium hover:border-green-500 transition-colors"
       >
         {profileImage ? (
-          <img
+          <Image
             src={profileImage}
-            className="size-full rounded-full object-cover"
+            alt="profile"
+            fill
+            className="rounded-full object-cover"
           />
         ) : (
           `${avatarText}`
@@ -81,7 +84,7 @@ export default function ProfileDropdown({
                 <Link
                   key={idx}
                   href={link.href}
-                  onClick={()=>setOpen(false)}
+                  onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <Icon className="w-4 h-4" /> {link.label}

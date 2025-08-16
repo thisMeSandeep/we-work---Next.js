@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
+
 export type PayloadProps = {
   userId: string;
   email: string;
-  role:string
+  role: string;
 };
-
 
 const generateJwtToken = (payload: PayloadProps) => {
   const secret = process.env.JWT_SECRET;
@@ -14,8 +14,7 @@ const generateJwtToken = (payload: PayloadProps) => {
   }
 
   try {
-    // @ts-ignore
-    const token = jwt.sign(payload, secret, { expiresIn :'7d'});
+    const token = jwt.sign(payload, secret as jwt.Secret, { expiresIn: "7d" });
     return token;
   } catch (err) {
     console.error("Error generating JWT token:", err);
@@ -23,6 +22,4 @@ const generateJwtToken = (payload: PayloadProps) => {
   }
 };
 
-
-export default generateJwtToken
-
+export default generateJwtToken;

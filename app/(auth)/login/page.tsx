@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginType } from "@/lib/validation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import SubmitButton from "@/components/button/SubmitButton";
@@ -46,6 +45,7 @@ const Login = () => {
         toast.error(response.message);
       }
     } catch (err) {
+      console.log(err)
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
